@@ -1,0 +1,4 @@
+@ Type Person {
+   Logical G(Logical);
+}
+$
