@@ -1,4 +1,9 @@
-@ Type Person {
-   Logical G(Logical);
+@ Type Person{
+   Logical G() {
+      Logical frt;
+      However (counter<num){
+         reg3=reg3-1;
+      }
+   }
 }
 $

@@ -1,49 +1,61 @@
 export class TokenStream {
 	tokens = [];
-	current = 0;
+	index = 0;
 
 	constructor(tokens) {
 		this.tokens = tokens;
 	}
 
+	snapshot() {
+		return this.index;
+	}
+
+	restore(state) {
+		this.index = state;
+	}
+
 	match(expectedType) {
-		const token = this.tokens[this.current];
+		const token = this.tokens[this.index];
 		if (token?.type === expectedType) {
 			return true;
 		}
 		return false;
 	}
 
-	matchWithSkip(expectedType) {
-		const token = this.tokens[this.current];
-		this.current++;
-		if (token?.type === expectedType) {
-			return true;
+	skipLine(Line) {
+		const line = Line ?? this.tokens[this.index]?.line;
+		if (line) {
+			while (
+				this.index < this.tokens.length - 1 &&
+				line === this.tokens[this.index]?.line
+			) {
+				this.index++;
+
+				if (
+					this.match("Right Curly Braces") ||
+					this.match("Right Parenthesis") ||
+					this.match("End Symbol")
+				)
+					break;
+			}
 		}
-		return false;
 	}
 
 	skip() {
-		this.current++;
-	}
-
-	skip() {
-		this.current++;
-	}
-
-	back() {
-		this.current--;
+		this.index++;
 	}
 
 	peek() {
-		return this.tokens[this.current];
+		return this.tokens[this.index];
 	}
 
 	currentLine() {
-		return this.tokens[this.current]?.line ?? "??";
+		return this.tokens[this.index]?.line;
 	}
 
-	prevLine() {
-		return this.tokens[this.current - 1]?.line ?? "??";
+	printLine() {
+		return this.tokens[
+			this.index === this.tokens.length - 1 ? this.index : this.index - 1
+		]?.line;
 	}
 }

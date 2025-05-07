@@ -1,5 +1,4 @@
-import fs from "fs";
-import readline from "readline";
+import fs from "fs/promises";
 import { KEYWORDS, SYMBOLS } from "./tokens.mjs";
 import { Token } from "./Token.mjs";
 
@@ -11,7 +10,6 @@ function tokenizeLine(line, lineNumber) {
 	const output = [];
 
 	let tokens = line
-		.replace(commentRegex, "")
 		.split(/(\s+|[\{\}\[\]\(\),;]|==|!=|>=|<=|->|&&|\|\||[+\-*/=<>~])/)
 		.filter((t) => t && !/^\s+$/.test(t));
 
@@ -32,20 +30,15 @@ function tokenizeLine(line, lineNumber) {
 
 	return output;
 }
-
 export async function scanFile(filePath) {
-	const fileStream = fs.createReadStream(filePath);
-	const rl = readline.createInterface({
-		input: fileStream,
-		crlfDelay: Infinity,
-	});
+	const fileContent = await fs.readFile(filePath, "utf-8");
+	const lines = fileContent.replace(commentRegex, "").split(/\r?\n/);
 
 	let tokens = [];
-	let lineNumber = 0;
 
-	for await (const line of rl) {
-		lineNumber++;
-		const lineTokens = tokenizeLine(line, lineNumber);
+	for (let i = 0; i < lines.length; i++) {
+		const lineNumber = i + 1;
+		const lineTokens = tokenizeLine(lines[i], lineNumber);
 		tokens.push(...lineTokens);
 	}
 
