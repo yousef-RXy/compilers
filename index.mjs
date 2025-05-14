@@ -6,14 +6,14 @@ export async function main(filePath) {
 	let tokenStream;
 
 	try {
-		const tokens = await scanFile(filePath);
+		const tokens = await scanFile(`./input/${filePath}`);
 		tokenStream = new TokenStream(tokens);
 	} catch (error) {
 		return;
 	}
 
 	console.log("\n--- Parser Output ---");
-	parse(tokenStream);
+	await parse(tokenStream);
 }
 
-main("./input/test.txt");
+main("test.txt");

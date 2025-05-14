@@ -51,4 +51,7 @@ export const SYMBOLS = {
 	",": "Comma",
 	'"': "Double Quotation Mark",
 	"'": "Single Quotation Mark",
+	"/*": "Comment",
+	"/<": "Comment Multiple Start",
+	">/": "Comment Multiple End",
 };

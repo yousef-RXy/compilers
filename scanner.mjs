@@ -2,7 +2,9 @@ import fs from "fs/promises";
 import { KEYWORDS, SYMBOLS } from "./tokens.mjs";
 import { Token } from "./Token.mjs";
 
-const commentRegex = /\/<[\s\S]*?>\/|\/\*.*$/gm;
+const singleLineCommentRegex = /\/\*.*$/gm;
+const multipleLineCommentRegex = /\/<[\s\S]*?>\//gm;
+const fileName = /\b[\w.-]+\.txt\b/g;
 
 let errorsNum = 0;
 
@@ -10,7 +12,10 @@ function tokenizeLine(line, lineNumber) {
 	const output = [];
 
 	let tokens = line
-		.split(/(\s+|[\{\}\[\]\(\),;]|==|!=|>=|<=|->|&&|\|\||[+\-*/=<>~])/)
+		.split(
+			/(\/\*|\/<|>\/|\s+|[\{\}\[\]\(\),;]|==|!=|>=|<=|->|&&|\|\||[+\-*/=<>~])/
+		)
+
 		.filter((t) => t && !/^\s+$/.test(t));
 
 	for (let token of tokens) {
@@ -18,10 +23,14 @@ function tokenizeLine(line, lineNumber) {
 			output.push(new Token(lineNumber, token, KEYWORDS[token]));
 		} else if (SYMBOLS[token]) {
 			output.push(new Token(lineNumber, token, SYMBOLS[token]));
+		} else if (token === "STR") {
+			output.push(new Token(lineNumber, token, "STR"));
 		} else if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(token)) {
 			output.push(new Token(lineNumber, token, "Identifier"));
 		} else if (/^\d+$/.test(token)) {
 			output.push(new Token(lineNumber, token, "Constant"));
+		} else if (fileName.test(token)) {
+			output.push(new Token(lineNumber, token, "STR"));
 		} else {
 			output.push(new Token(lineNumber, token, "Error"));
 			errorsNum++;
@@ -32,7 +41,10 @@ function tokenizeLine(line, lineNumber) {
 }
 export async function scanFile(filePath) {
 	const fileContent = await fs.readFile(filePath, "utf-8");
-	const lines = fileContent.replace(commentRegex, "").split(/\r?\n/);
+	const lines = fileContent
+		.replace(singleLineCommentRegex, "/*STR")
+		.replace(multipleLineCommentRegex, "/< STR >/")
+		.split(/\r?\n/);
 
 	let tokens = [];
 
