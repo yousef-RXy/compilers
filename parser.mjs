@@ -3,6 +3,7 @@ import { TokenStream } from "./TokenStream.mjs";
 
 let tokenStream = new TokenStream();
 let parserErrors = 0;
+let error = null;
 
 export async function parse(inputTokens) {
 	tokenStream = inputTokens;
@@ -145,7 +146,6 @@ async function ClassMember() {
 	}
 
 	if (VariableDecl()) return true;
-
 	tokenStream.restore(snapshot);
 
 	if (MethodDecl()) return true;
@@ -189,7 +189,14 @@ function MethodDecl() {
 }
 
 function FuncDecl() {
-	if (!Type()) return false;
+	let returnValue = true;
+	if (!Type()) {
+		tokenStream.skip();
+		returnValue = false;
+		if (tokenStream.match("Identifier"))
+			logMatch(false, `Invalid Type (${tokenStream.prev().text})`);
+		else return false;
+	}
 
 	if (!tokenStream.match("Identifier")) return false;
 	tokenStream.skip();
@@ -202,7 +209,7 @@ function FuncDecl() {
 	if (!tokenStream.match("Right Parenthesis")) return false;
 	tokenStream.skip();
 
-	logMatch(true, "FuncDecl");
+	returnValue && logMatch(true, "FuncDecl");
 	return true;
 }
 
@@ -296,7 +303,8 @@ function Statements() {
 			while (line === tokenStream.currentLine()) {
 				tokenStream.skipLine(line);
 			}
-			logMatch(false, "Statement");
+			logMatch(false, error ?? "Statement");
+			error = null;
 		} else {
 			logMatch(true, "Statement");
 		}
@@ -319,6 +327,8 @@ function Statement() {
 				}
 			} else if (tokenStream.match("Left Parenthesis")) {
 				return FuncCall();
+			} else if (tokenStream.match("Identifier")) {
+				error = `Invalid Type (${tokenStream.prev().text})`;
 			}
 			break;
 

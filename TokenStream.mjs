@@ -45,6 +45,10 @@ export class TokenStream {
 		this.index++;
 	}
 
+	prev() {
+		return this.tokens[this.index - 1];
+	}
+
 	peek() {
 		return this.tokens[this.index];
 	}

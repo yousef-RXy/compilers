@@ -1,10 +1,9 @@
 @ Type Person{
-/* jdksal   
-   /<Logical G() {
-      Logical frt;
-      However (counter<num){
+   Logica G() {
+      Logica frt;
+      when (counter<num){
          reg3=reg3-1;
       }
-   }>/
+   }
 }
 $
